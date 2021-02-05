@@ -3,24 +3,26 @@
   "version": "1.0",
   "author": "Kasey Kaufmann",
   "description": "A note taking extension that will keep your notes exactly how you want them on any website - Neat and Organized!",
+  "permissions": ["webRequest", "*://developer.mozilla.org/"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["app/content.js"]
     }
   ],
   "browser_action": {
-    "default_popup": "popup.html",
+    "default_popup": "index.html",
     "default_icon": "images/post-it.png",
     "default_title": "Keep Some Notes"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["app/background.js"]
   },
   "icons": {
     "32": "images/post-it.png",
     "48": "images/post-it48.png",
     "128": "images/post-it128.png"
   },
+  "content_security_policy": "script-src 'self' 'sha256-ifmvVjgvGgmqloUYCQ2auIWAa9308mIdIDB8y7igSow='; object-src 'self'",
   "manifest_version": 2
 }
