@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="text/javascript" src="popup.js"></script>
+  </head>
+  <body>
+    <style>
+      body {
+        background-color: black;
+        width: auto;
+      }
+
+      button {
+        min-width: 125px;
+        background-color: white;
+        margin-bottom: 5px;
+        padding: 10px 0px;
+      }
+
+      hr.rounded {
+        border-top: 1px solid #bbb;
+        margin-bottom: 5px;
+        border-radius: 5px;
+      }
+
+      .success {
+        color: green;
+        background-color: rgba(0, 255, 0, 0.8);
+        border: 1px solid green;
+      }
+
+      .danger {
+        color: red;
+        background-color: rgba(255, 0, 0, 0.5);
+        border: 1px solid red;
+        margin-top: 5px;
+      }
+    </style>
+    <button id="dashboard">Go To Dashboard</button>
+    <button class="success" id="newNote">Add New Note</button>
+    <hr class="rounded" />
+    <button class="danger" id="deleteAll">Delete All Notes</button>
+  </body>
+</html>

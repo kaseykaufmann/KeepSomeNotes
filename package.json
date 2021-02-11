@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^12.6.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-draggable": "^4.4.3",
     "react-scripts": "4.0.2",
     "web-vitals": "^1.1.0"
   },
@@ -34,5 +35,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {}
 }
