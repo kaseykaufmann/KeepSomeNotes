@@ -1,10 +1,28 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
+import Notes from "./Notes";
+import { Options } from "./Options";
 
-ReactDOM.render(
-  <>
-    <App />
-  </>,
-  document.getElementById("root")
-);
+import "./index.css";
+
+const optionsRoot = document.getElementById("options-root");
+
+const insertionPoint = document.createElement("div");
+insertionPoint.id = "insertion-point";
+document.body.parentNode.insertBefore(insertionPoint, document.body);
+
+!optionsRoot &&
+  ReactDOM.render(
+    <React.StrictMode>
+      <Notes />
+    </React.StrictMode>,
+    insertionPoint
+  );
+
+optionsRoot &&
+  ReactDOM.render(
+    <React.StrictMode>
+      <Options />
+    </React.StrictMode>,
+    optionsRoot
+  );

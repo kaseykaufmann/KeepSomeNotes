@@ -1,44 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <script type="text/javascript" src="popup.js"></script>
-  </head>
-  <body>
     <style>
+      button {
+        border-radius: 7px;
+        width: 100%;
+        height: 30px;
+        margin: 4px auto;
+      }
       body {
         background-color: black;
-        width: auto;
       }
-
-      button {
-        min-width: 125px;
-        background-color: white;
-        margin-bottom: 5px;
-        padding: 10px 0px;
+      h2 {
+        color: white;
+        width: max-content;
       }
-
-      hr.rounded {
+      #createNote {
+        color: rgb(0, 50, 0);
+        border: 1px solid rgb(0, 50, 0);
+        background-color: lightgreen;
+      }
+      #deleteAllNotes {
+        color: red;
+        border: 1px solid red;
+        background-color: darkred;
+      }
+      hr {
         border-top: 1px solid #bbb;
-        margin-bottom: 5px;
         border-radius: 5px;
       }
-
-      .success {
-        color: green;
-        background-color: rgba(0, 255, 0, 0.8);
-        border: 1px solid green;
-      }
-
-      .danger {
-        color: red;
-        background-color: rgba(255, 0, 0, 0.5);
-        border: 1px solid red;
-        margin-top: 5px;
-      }
     </style>
-    <button id="dashboard">Go To Dashboard</button>
-    <button class="success" id="newNote">Add New Note</button>
-    <hr class="rounded" />
-    <button class="danger" id="deleteAll">Delete All Notes</button>
+    <h2>Keep Some Notes!</h2>
+  </head>
+  <body>
+    <button id="dashboard">Go to Dashboard!</button>
+    <button id="createNote">Create A Note :)</button>
+    <hr />
+    <button id="deleteAllNotes">Delete All Notes</button>
+    <script src="popup.js"></script>
   </body>
 </html>
