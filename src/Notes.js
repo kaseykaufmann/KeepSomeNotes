@@ -4,10 +4,10 @@ import Draggable from "react-draggable";
 import styled from "styled-components";
 import "./App.css";
 import { v4 as uuid } from "uuid";
-import { localMode } from "./constants";
+// import { localMode } from "./constants";
 import { ShadowRoot } from "./ShadowRoot";
 
-// const sampleNotesShape = [{ id: uuid, x: 2, y: 2, pinned: false, note: "some note text" }];
+// const sampleNotesShape = [{ id: uuid, x: 2, y: 2, offsetY: 100, pinned: false, note: "some note text", color: "white", textColor: "black" }];
 
 const Container = styled.div`
   z-index: 99;
@@ -94,6 +94,7 @@ const Notes = () => {
             id: uuid(),
             x: e.pageX,
             y: e.pageY,
+            offsetY: e.pageY - window.scrollY,
             pinned: false,
             textColor: "white",
             color: "#333333",
@@ -101,18 +102,46 @@ const Notes = () => {
         ]);
       }
     }
-    document.addEventListener("click", clickListener);
-    return () => document.removeEventListener("click", clickListener);
-  }, []);
 
-  // console.log(window);
+    function scrollListener() {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) => {
+          return {
+            id: note.id,
+            x: note.x,
+            y: note.pinned ? note.y : window.scrollY + note.offsetY,
+            offsetY: note.offsetY,
+            note: note.note,
+            pinned: note.pinned,
+            textColor: note.textColor,
+            color: note.color,
+          };
+        })
+      );
+    }
+    document.addEventListener("click", clickListener);
+    window.addEventListener("scroll", scrollListener);
+
+    return () => {
+      document.removeEventListener("click", clickListener);
+      window.removeEventListener("scroll", scrollListener);
+    };
+  }, []);
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener(function (msg, sender, res) {
       if (msg.from === "popup" && msg.subject === "newNote") {
         setNotes((prevNotes) => [
           ...prevNotes,
-          { id: uuid(), x: 100, y: 100, pinned: false },
+          {
+            id: uuid(),
+            x: 100,
+            y: window.scrollY + 100,
+            offsetY: 100,
+            pinned: false,
+            textColor: "white",
+            color: "#333333",
+          },
         ]);
         res({ msg: "Note successfully created!" });
       }
@@ -141,13 +170,6 @@ const Notes = () => {
       : chrome.storage.local.remove(url);
     // }
   }, [notes]);
-
-  // console.log(
-  //   window.screen.height / 2,
-  //   window.screen.width / 2,
-  //   window.screenX,
-  //   window.screenY
-  // );
 
   return (
     <div>
@@ -183,7 +205,12 @@ const Notes = () => {
             prevNotes.reduce(
               (acc, cv) =>
                 cv.id === note.id
-                  ? acc.push({ ...cv, x: data.x, y: data.y }) && acc
+                  ? acc.push({
+                      ...cv,
+                      x: data.x,
+                      y: data.y,
+                      offsetY: data.y - window.scrollY,
+                    }) && acc
                   : acc.push(cv) && acc,
               []
             )
@@ -211,11 +238,10 @@ const Notes = () => {
               className="react-sticky-note"
               onStop={onChangeLocation}
               defaultPosition={{ x: note.x, y: note.y }}
-              axis={note.pinned ? "none" : "both"}
-              disabled={note.pinned}
+              position={{ x: note.x, y: note.y }}
               scale={1}
             >
-              <Container>
+              <Container id={`${note.id}`}>
                 <Header>
                   <StyledButton onClick={handleDelete}>X</StyledButton>
                   <StyledButton onClick={handlePin}>
