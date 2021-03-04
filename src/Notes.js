@@ -156,7 +156,7 @@ const Notes = () => {
   // get notes if they're there
   useEffect(() => {
     // if (!localMode) {
-    chrome.storage.local.get(url, (items) => {
+    chrome.storage.sync.get(url, (items) => {
       items[url] && setNotes(items[url]);
     });
     // }
@@ -166,8 +166,8 @@ const Notes = () => {
   useEffect(() => {
     // if (!localMode) {
     notes.length > 0
-      ? chrome.storage.local.set({ [url]: notes })
-      : chrome.storage.local.remove(url);
+      ? chrome.storage.sync.set({ [url]: notes })
+      : chrome.storage.sync.remove(url);
     // }
   }, [notes]);
 

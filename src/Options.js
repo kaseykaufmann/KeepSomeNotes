@@ -18,13 +18,14 @@ const EditButton = styled.button`
   position: absolute;
   color: gray;
   top: 10px;
-  right: 0px;
+  right: 10px;
   border: 0px;
 `;
 
 const EditInput = styled.input`
   height: 75px;
-  width: 150px;
+  min-width: 150px;
+  width: 30%;
   background: #8eb5ff;
   border-radius: 5px;
   font-size: 72px;
@@ -36,7 +37,6 @@ const StyledTitle = styled.h1`
   position: relative;
   min-width: 450px;
   max-width: 750px;
-  width: 450px;
   height: 75px;
   font-size: 72px;
   text-align: center;
@@ -51,29 +51,14 @@ const StyledTitle = styled.h1`
 const StyledSubHeader = styled.div`
   height: 50px;
   position: relative;
-`;
-
-const StyledFilterButton = styled.button`
-  width: 15%;
-  margin: 0px;
-  top: 0px;
-  left: 1%;
-
-  position: absolute;
-  font-size: 16px;
-  height: 50px;
-  border-radius: 10px;
-  background: #c4c4c4;
-  border: 0px;
-  padding: 0px;
+  padding: 0px 15px;
 `;
 
 const StyledSearchBar = styled.input`
-  width: 90%;
+  width: 100%;
   height: 50px;
   font-size: 24px;
   border-radius: 10px;
-  padding: 0px 10px;
   border: 0px;
 `;
 
@@ -165,8 +150,8 @@ const UrlEntry = ({ entry }) => {
   // set
   useEffect(() => {
     notes.length > 0
-      ? chrome.storage.local.set({ [url]: notes })
-      : chrome.storage.local.remove(url);
+      ? chrome.storage.sync.set({ [url]: notes })
+      : chrome.storage.sync.remove(url);
   }, [notes]);
 
   const deleteAllNotes = () => {
@@ -250,23 +235,39 @@ const UrlEntry = ({ entry }) => {
 
 export const Options = () => {
   const [notes, setNotes] = useState([]);
-  const [title, setTitle] = useState({ open: false, name: "Your" });
+  const [title, setTitle] = useState({
+    open: false,
+    name: "Your",
+  });
 
   useEffect(() => {
-    chrome.storage.local.get((items) => {
+    chrome.storage.local.set({ name: title.name }, function () {
+      console.log("Value is set to " + title.name);
+    });
+  }, [title.name]);
+
+  useEffect(() => {
+    chrome.storage.sync.get((items) => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
     });
+    chrome.storage.local.set({ name: title.name });
   }, []);
-
-  // chrome.storage.local.set({ name: title });
 
   return (
     <StyledContainer>
       <StyledHeader>
         <StyledTitle>
-          {!title.open ? title.name : <EditInput placeholder="Your" />} Notes
+          {!title.open ? (
+            title.name
+          ) : (
+            <EditInput
+              onChange={(e) => setTitle({ ...title, name: e.target.value })}
+              placeholder="Your"
+            />
+          )}{" "}
+          Notes
           <EditButton onClick={() => setTitle({ ...title, open: !title.open })}>
             {title.open ? "DONE" : "EDIT"}
           </EditButton>
