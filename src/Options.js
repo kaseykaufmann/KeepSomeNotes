@@ -13,7 +13,27 @@ const StyledHeader = styled.span`
   text-align: center;
 `;
 
+const EditButton = styled.button`
+  background: none;
+  position: absolute;
+  color: gray;
+  top: 10px;
+  right: 0px;
+  border: 0px;
+`;
+
+const EditInput = styled.input`
+  height: 75px;
+  width: 150px;
+  background: #8eb5ff;
+  border-radius: 5px;
+  font-size: 72px;
+  top: 10px;
+  left: 10px;
+`;
+
 const StyledTitle = styled.h1`
+  position: relative;
   min-width: 450px;
   max-width: 750px;
   width: 450px;
@@ -49,13 +69,8 @@ const StyledFilterButton = styled.button`
 `;
 
 const StyledSearchBar = styled.input`
-  width: 80%;
-  top: 0px;
-  left: 18%;
-
-  position: absolute;
+  width: 90%;
   height: 50px;
-  margin: 0px;
   font-size: 24px;
   border-radius: 10px;
   padding: 0px 10px;
@@ -66,7 +81,7 @@ const StyledBody = styled.div`
   background: #909090;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
-  padding: 30px;
+  padding: 20px;
 `;
 
 const StyledList = styled.div`
@@ -82,14 +97,53 @@ const StyledUrlList = styled.div`
 const Urls = styled.h4`
   width: 100%;
   font-size: 16px;
-  padding-top: 25px;
   border: 1px solid gray;
   border-radius: 5px;
-  height: 50px;
+  min-height: 50px;
   margin: 0px;
   margin-top: 10px;
   background: #bdbdbd;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+`;
+
+const URLTitle = styled.div`
+  min-height: 40px;
+  max-width: 70%;
+  padding-top: 15px;
+  padding-left: 15px;
+  width: auto;
+  float: left;
+`;
+
+const ButtonGroup = styled.div`
+  height: 50px;
+  max-width: 50%;
+  width: auto;
+  float: right;
+  margin-right: 10px;
+  padding-top: 5px;
+`;
+
+const DeleteButton = styled.button`
+  color: red;
+  decoration: none;
+  border: 1px solid red;
+  border-radius: 5px;
+  background: #bdbdbd;
+  margin: 3px 10px;
+  padding: 10px;
+`;
+
+const Header = styled.div`
+  height: 20px;
+  border: none;
+  opacity: 0.5;
+`;
+
+const StyledButton = styled.button`
+  height: 20px;
+  border: none;
+  float: right;
 `;
 
 const StyledNote = styled.textarea.attrs((props) => ({
@@ -98,8 +152,6 @@ const StyledNote = styled.textarea.attrs((props) => ({
 }))`
   height: 200px;
   width: 200px;
-  margin: 0px;
-  margin-right: 10px;
   border: none;
   color: ${(props) => props.color || "white"};
   background-color: ${(props) => props.backgroundColor || "gray"};
@@ -108,28 +160,88 @@ const StyledNote = styled.textarea.attrs((props) => ({
 const UrlEntry = ({ entry }) => {
   const [open, setOpen] = useState(false);
   const url = entry[0];
-  const notes = entry[1];
+  const [notes, setNotes] = useState(entry[1]);
+
+  // set
+  useEffect(() => {
+    notes.length > 0
+      ? chrome.storage.local.set({ [url]: notes })
+      : chrome.storage.local.remove(url);
+  }, [notes]);
+
+  const deleteAllNotes = () => {
+    setNotes([]);
+  };
 
   return (
     <StyledUrlList>
       <Urls onClick={() => setOpen(!open)}>
-        <div style={{ margin: "0px 10px", width: "auto" }}>
-          {url}{" "}
-          <a href={url} target="_blank" style={{ float: "right" }}>
+        <URLTitle>
+          {url.substring(0, 50)}
+          {url.length > 50 && "..."}{" "}
+        </URLTitle>
+        <ButtonGroup>
+          <DeleteButton onClick={deleteAllNotes}>Delete All Notes</DeleteButton>
+          <a href={url} target="_blank">
             Go to website
           </a>
-        </div>
+        </ButtonGroup>
       </Urls>
       {notes && (
         <StyledBody style={{ display: open ? "inherit" : "none" }}>
-          {notes.map((note) => (
-            <StyledNote
-              backgroundColor={note.color || "gray"}
-              color={note.textColor || "black"}
-            >
-              {note.note}
-            </StyledNote>
-          ))}
+          {notes.map((note) => {
+            const handleChange = (e) => {
+              const editedText = e.target.value;
+              setNotes((prevNotes) =>
+                prevNotes.reduce(
+                  (acc, cv) =>
+                    cv.id === note.id
+                      ? acc.push({ ...cv, note: editedText }) && acc
+                      : acc.push(cv) && acc,
+                  []
+                )
+              );
+            };
+            const handleDelete = () => {
+              setNotes(notes.filter((notes) => notes.id !== note.id));
+            };
+            const handleColor = (backgroundColor, color) => {
+              setNotes((prevNotes) =>
+                prevNotes.reduce(
+                  (acc, cv) =>
+                    cv.id === note.id
+                      ? acc.push({
+                          ...cv,
+                          textColor: color,
+                          color: backgroundColor,
+                        }) && acc
+                      : acc.push(cv) && acc,
+                  []
+                )
+              );
+            };
+
+            return (
+              <div
+                style={{
+                  display: "inline-block",
+                  width: 205,
+                  margin: 0,
+                  marginRight: 10,
+                }}
+              >
+                <Header>
+                  <StyledButton onClick={handleDelete}>X</StyledButton>
+                </Header>
+                <StyledNote
+                  onChange={handleChange}
+                  value={note.note ? note.note : ""}
+                  backgroundColor={note.color || "gray"}
+                  color={note.textColor || "black"}
+                ></StyledNote>
+              </div>
+            );
+          })}
         </StyledBody>
       )}
     </StyledUrlList>
@@ -138,25 +250,30 @@ const UrlEntry = ({ entry }) => {
 
 export const Options = () => {
   const [notes, setNotes] = useState([]);
-  const [title, setTitle] = useState("Your");
+  const [title, setTitle] = useState({ open: false, name: "Your" });
 
   useEffect(() => {
-    // if (!localMode) {
     chrome.storage.local.get((items) => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
     });
-    // }
   }, []);
+
+  // chrome.storage.local.set({ name: title });
 
   return (
     <StyledContainer>
       <StyledHeader>
-        <StyledTitle>{title} Notes</StyledTitle>
+        <StyledTitle>
+          {!title.open ? title.name : <EditInput placeholder="Your" />} Notes
+          <EditButton onClick={() => setTitle({ ...title, open: !title.open })}>
+            {title.open ? "DONE" : "EDIT"}
+          </EditButton>
+        </StyledTitle>
       </StyledHeader>
       <StyledSubHeader>
-        <StyledFilterButton>Filter By: Alphabetical</StyledFilterButton>
+        {/* <StyledFilterButton>Filter By: Alphabetical</StyledFilterButton> */}
         <StyledSearchBar placeholder="Search..." />
       </StyledSubHeader>
       {notes && (
