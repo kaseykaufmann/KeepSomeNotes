@@ -1,14 +1,25 @@
 /* global chrome */
 import React, { useEffect, useState } from "react";
 import Draggable from "react-draggable";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import "./App.css";
 import { v4 as uuid } from "uuid";
 // import { localMode } from "./constants";
 import { ShadowRoot } from "./ShadowRoot";
 
-// const sampleNotesShape = [{ id: uuid, x: 2, y: 2, offsetY: 100, pinned: false, note: "some note text", color: "white", textColor: "black" }];
-
+/**
+ * const sampleNotesShape = [{
+ *    id: uuid,
+ *    x: 2,
+ *    y: 2,
+ *    offsetY: 100,
+ *    pinned: true | false,
+ *    note: "some note text",
+ *    color: "white",
+ *    textColor: "black",
+ *    size: "small" | "medium" | "large"
+ * }];
+ */
 const Container = styled.div`
   z-index: 99;
   position: absolute;
@@ -30,10 +41,11 @@ const StyledButton = styled.button`
 const StyledTextArea = styled.textarea.attrs((props) => ({
   color: props.color || "white",
   backgroundColor: props.backgroundColor || "gray",
+  size: props.size,
 }))`
   color: ${(props) => props.color || "black"};
-  height: 200px;
-  width: 200px;
+  height: ${(props) => props.size || "200px"};
+  width: ${(props) => props.size || "200px"};
   border: none;
   color: ${(props) => props.color || "white"};
   background-color: ${(props) => props.backgroundColor || "gray"};
@@ -54,6 +66,45 @@ const ColorButton = styled.button.attrs((props) => ({
   border: 0px;
   border-radius: 100%;
   background-color: ${(props) => props.backgroundColor || "gray"};
+`;
+
+const SizeButtonGroup = styled.ul`
+  position: absolute;
+  right: -60px;
+  top: 20px;
+  width: 60px;
+  height: 60px;
+  margin: 0px;
+  padding: 0px;
+`;
+
+const show = keyframes`
+  from {
+    width: 20px;
+  }
+  to {
+    width: 100%;
+  }
+`;
+
+const SizeListItems = styled.li`
+  list-style-type: none;
+`;
+
+const SizeButton = styled.button`
+  width: 12px;
+  letter-spacing: 2px;
+  padding: 0px;
+  border: 1px black solid;
+  border-radius: 0px;
+  text-overflow: clip;
+  overflow: hidden;
+  &:hover {
+    animation: ${show} 1s ease-out forwards;
+  }
+  &:focus {
+    outline: none;
+  }
 `;
 
 /**
@@ -98,6 +149,7 @@ const Notes = () => {
             pinned: false,
             textColor: "white",
             color: "#333333",
+            size: "small",
           },
         ]);
       }
@@ -115,6 +167,7 @@ const Notes = () => {
             pinned: note.pinned,
             textColor: note.textColor,
             color: note.color,
+            size: note.size,
           };
         })
       );
@@ -141,6 +194,7 @@ const Notes = () => {
             pinned: false,
             textColor: "white",
             color: "#333333",
+            size: "small",
           },
         ]);
         res({ msg: "Note successfully created!" });
@@ -231,6 +285,29 @@ const Notes = () => {
             )
           );
         };
+        const handleSize = (size) => {
+          setNotes((prevNotes) =>
+            prevNotes.reduce(
+              (acc, cv) =>
+                cv.id === note.id
+                  ? acc.push({
+                      ...cv,
+                      size,
+                    }) && acc
+                  : acc.push(cv) && acc,
+              []
+            )
+          );
+        };
+
+        let size = "200px";
+        if (note.size === "small") {
+          size = "200px";
+        } else if (note.size === "medium") {
+          size = "300px";
+        } else if (note.size === "large") {
+          size = "400px";
+        }
 
         return (
           <ShadowRoot>
@@ -253,7 +330,25 @@ const Notes = () => {
                   value={note.note ? note.note : ""}
                   backgroundColor={note.color || "gray"}
                   color={note.textColor || "black"}
+                  size={size || "200px"}
                 />
+                <SizeButtonGroup>
+                  <SizeListItems>
+                    <SizeButton onClick={() => handleSize("small")}>
+                      Small
+                    </SizeButton>
+                  </SizeListItems>
+                  <SizeListItems>
+                    <SizeButton onClick={() => handleSize("medium")}>
+                      Medium
+                    </SizeButton>
+                  </SizeListItems>
+                  <SizeListItems>
+                    <SizeButton onClick={() => handleSize("large")}>
+                      Large
+                    </SizeButton>
+                  </SizeListItems>
+                </SizeButtonGroup>
                 <Footer>
                   <ColorButton
                     color="#333333"

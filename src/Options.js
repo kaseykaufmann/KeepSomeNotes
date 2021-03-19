@@ -239,11 +239,34 @@ export const Options = () => {
     open: false,
     name: "Your",
   });
+  const [searchFilter, setSearchFilter] = useState("");
+  const [filteredNotes, setFilteredNotes] = useState(notes);
+
+  const onSearchFilter = (e) => {
+    setSearchFilter(e.target.value);
+  };
+
+  // ! when i backspace it deletes notes permanently for some reason
+  // TODO highlight the specific words
+  useEffect(() => {
+    const newNotes = notes.filter((URL) => {
+      const newNotes = URL[1].filter((note) =>
+        note.note.toLowerCase().includes(searchFilter.toLowerCase())
+      );
+      if (
+        URL[0].toLowerCase().includes(searchFilter.toLowerCase()) ||
+        newNotes.length > 0
+      ) {
+        let newURL = URL;
+        newURL[1] = newNotes;
+        return newURL;
+      }
+    });
+    setFilteredNotes(newNotes);
+  }, [searchFilter]);
 
   useEffect(() => {
-    chrome.storage.local.set({ name: title.name }, function () {
-      console.log("Value is set to " + title.name);
-    });
+    chrome.storage.local.set({ name: title.name });
   }, [title.name]);
 
   useEffect(() => {
@@ -251,6 +274,7 @@ export const Options = () => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
+      setFilteredNotes(tempNotes);
     });
     chrome.storage.local.set({ name: title.name });
   }, []);
@@ -274,12 +298,11 @@ export const Options = () => {
         </StyledTitle>
       </StyledHeader>
       <StyledSubHeader>
-        {/* <StyledFilterButton>Filter By: Alphabetical</StyledFilterButton> */}
-        <StyledSearchBar placeholder="Search..." />
+        <StyledSearchBar placeholder="Search..." onChange={onSearchFilter} />
       </StyledSubHeader>
-      {notes && (
+      {filteredNotes && (
         <StyledList>
-          {notes.map((entry) => (
+          {filteredNotes.map((entry) => (
             <UrlEntry entry={entry} />
           ))}
         </StyledList>
