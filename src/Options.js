@@ -149,9 +149,20 @@ const UrlEntry = ({ entry }) => {
 
   // set
   useEffect(() => {
-    notes.length > 0
-      ? chrome.storage.sync.set({ [url]: notes })
-      : chrome.storage.sync.remove(url);
+    if (notes.length > 0) {
+      chrome.storage.sync.set({ allNotes: { [url]: notes } }, (items) => {
+        console.log(items);
+      });
+    } else {
+      chrome.storage.sync.set(
+        {
+          allNotes: notes.filter((note) => note.url !== url),
+        },
+        (items) => {
+          console.log("deleting notes: ", items);
+        }
+      );
+    }
   }, [notes]);
 
   const deleteAllNotes = () => {
@@ -266,17 +277,15 @@ export const Options = () => {
   }, [searchFilter]);
 
   useEffect(() => {
-    chrome.storage.local.set({ name: title.name });
-  }, [title.name]);
-
-  useEffect(() => {
-    chrome.storage.sync.get((items) => {
+    chrome.storage.sync.get(["notes"], (items) => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
       setFilteredNotes(tempNotes);
     });
-    chrome.storage.local.set({ name: title.name });
+    chrome.storage.sync.get(["name"], (name) => {
+      setTitle({ ...title, name: name.name });
+    });
   }, []);
 
   return (
@@ -292,7 +301,15 @@ export const Options = () => {
             />
           )}{" "}
           Notes
-          <EditButton onClick={() => setTitle({ ...title, open: !title.open })}>
+          <EditButton
+            onClick={() => {
+              title.open
+                ? chrome.storage.sync.set({ name: title.name }, (name) => {
+                    setTitle({ ...title, open: false });
+                  })
+                : setTitle({ ...title, open: true });
+            }}
+          >
             {title.open ? "DONE" : "EDIT"}
           </EditButton>
         </StyledTitle>

@@ -4,7 +4,6 @@ import Draggable from "react-draggable";
 import styled, { keyframes } from "styled-components";
 import "./App.css";
 import { v4 as uuid } from "uuid";
-// import { localMode } from "./constants";
 import { ShadowRoot } from "./ShadowRoot";
 
 /**
@@ -17,9 +16,10 @@ import { ShadowRoot } from "./ShadowRoot";
  *    note: "some note text",
  *    color: "white",
  *    textColor: "black",
- *    size: "small" | "medium" | "large"
+ *    size: 200
  * }];
  */
+
 const Container = styled.div`
   z-index: 99;
   position: absolute;
@@ -51,32 +51,28 @@ const StyledTextArea = styled.textarea.attrs((props) => ({
   background-color: ${(props) => props.backgroundColor || "gray"};
 `;
 
-const Footer = styled.footer`
-  width: 200px;
-  border: none;
-`;
-
-const ColorButton = styled.button.attrs((props) => ({
-  backgroundColor: props.color,
-}))`
-  width: calc(200px / (7 * 2));
-  height: calc(200px / (7 * 2));
-  margin: 0px calc(200px / (7 * 4));
-  padding: 0px;
-  border: 0px;
-  border-radius: 100%;
-  background-color: ${(props) => props.backgroundColor || "gray"};
-`;
-
-const SizeButtonGroup = styled.ul`
+const ColorButtonGroup = styled.div`
   position: absolute;
   right: -60px;
   top: 20px;
   width: 60px;
-  height: 60px;
+  height: 90%;
   margin: 0px;
   padding: 0px;
 `;
+
+const SizeButtonGroup = styled.div`
+  position: absolute;
+  left: -20px;
+  top: 20px;
+  height: 90%;
+  margin: 0px;
+  padding: 0px;
+`;
+
+const ColorListItems = styled.div.attrs((props) => ({
+  backgroundColor: props.color,
+}))``;
 
 const show = keyframes`
   from {
@@ -87,24 +83,28 @@ const show = keyframes`
   }
 `;
 
-const SizeListItems = styled.li`
-  list-style-type: none;
+const SizeButton = styled.button`
+  width: 20px;
+  padding: 0px;
+  &:focus {
+    outline: none;
+  }
 `;
 
-const SizeButton = styled.button`
-  width: 12px;
-  letter-spacing: 2px;
+const ColorButton = styled.button.attrs((props) => ({
+  backgroundColor: props.color,
+}))`
+  width: 14px;
+  height: 18px;
   padding: 0px;
-  border: 1px black solid;
-  border-radius: 0px;
-  text-overflow: clip;
-  overflow: hidden;
+  border: 3px solid ${(props) => props.backgroundColor || "gray"};
   &:hover {
     animation: ${show} 1s ease-out forwards;
   }
   &:focus {
     outline: none;
   }
+  background-color: ${(props) => props.backgroundColor || "gray"};
 `;
 
 /**
@@ -135,9 +135,9 @@ const Notes = () => {
   const [notes, setNotes] = useState([]);
   const url = window.location.href;
 
-  // listen for shift + click to add note
   useEffect(() => {
-    function clickListener(e) {
+    // listen for shift + click to add note
+    const clickListener = (e) => {
       if (e.shiftKey) {
         setNotes((prevNotes) => [
           ...prevNotes,
@@ -149,13 +149,14 @@ const Notes = () => {
             pinned: false,
             textColor: "white",
             color: "#333333",
-            size: "small",
+            size: 200,
           },
         ]);
       }
-    }
+    };
 
-    function scrollListener() {
+    // moves notes onscroll
+    const scrollListener = () => {
       setNotes((prevNotes) =>
         prevNotes.map((note) => {
           return {
@@ -171,7 +172,7 @@ const Notes = () => {
           };
         })
       );
-    }
+    };
     document.addEventListener("click", clickListener);
     window.addEventListener("scroll", scrollListener);
 
@@ -181,6 +182,7 @@ const Notes = () => {
     };
   }, []);
 
+  // creates note/deletes all notes from popup
   useEffect(() => {
     chrome.runtime.onMessage.addListener(function (msg, sender, res) {
       if (msg.from === "popup" && msg.subject === "newNote") {
@@ -194,7 +196,7 @@ const Notes = () => {
             pinned: false,
             textColor: "white",
             color: "#333333",
-            size: "small",
+            size: 200,
           },
         ]);
         res({ msg: "Note successfully created!" });
@@ -209,20 +211,39 @@ const Notes = () => {
 
   // get notes if they're there
   useEffect(() => {
-    // if (!localMode) {
-    chrome.storage.sync.get(url, (items) => {
-      items[url] && setNotes(items[url]);
+    chrome.storage.sync.get(["notes"], (items) => {
+      let tempNotes = [];
+      console.log(items);
+      Object.entries(items.notes).map((note) => tempNotes.push(note));
+      setNotes(tempNotes);
     });
-    // }
   }, []);
+  console.log(notes);
 
   // set()
   useEffect(() => {
-    // if (!localMode) {
-    notes.length > 0
-      ? chrome.storage.sync.set({ [url]: notes })
-      : chrome.storage.sync.remove(url);
-    // }
+    console.log(notes);
+    if (notes.length > 0) {
+      chrome.storage.sync.set(
+        {
+          allNotes: notes.map((note) => {
+            console.log(note);
+            if (note.url === url) {
+              return {
+                [url]: notes,
+              };
+            } else {
+              return note;
+            }
+          }),
+        },
+        (items) => {
+          console.log(items);
+        }
+      );
+    } else {
+      chrome.storage.sync.remove(url);
+    }
   }, [notes]);
 
   return (
@@ -289,25 +310,21 @@ const Notes = () => {
           setNotes((prevNotes) =>
             prevNotes.reduce(
               (acc, cv) =>
-                cv.id === note.id
+                cv.id === note.id &&
+                ((size === "decrement" && note.size > 200) ||
+                  (size === "increment" && note.size < 700))
                   ? acc.push({
                       ...cv,
-                      size,
+                      size:
+                        size === "increment"
+                          ? note.size + 100
+                          : note.size - 100,
                     }) && acc
                   : acc.push(cv) && acc,
               []
             )
           );
         };
-
-        let size = "200px";
-        if (note.size === "small") {
-          size = "200px";
-        } else if (note.size === "medium") {
-          size = "300px";
-        } else if (note.size === "large") {
-          size = "400px";
-        }
 
         return (
           <ShadowRoot>
@@ -325,60 +342,70 @@ const Notes = () => {
                     {note.pinned ? "Pinned" : "Not Pinned"}
                   </StyledButton>
                 </Header>
+                <SizeButtonGroup>
+                  <div>
+                    <SizeButton onClick={() => handleSize("decrement")}>
+                      -
+                    </SizeButton>
+                  </div>
+                  <div>
+                    <SizeButton onClick={() => handleSize("increment")}>
+                      +
+                    </SizeButton>
+                  </div>
+                </SizeButtonGroup>
                 <StyledTextArea
                   onChange={handleChange}
                   value={note.note ? note.note : ""}
                   backgroundColor={note.color || "gray"}
                   color={note.textColor || "black"}
-                  size={size || "200px"}
+                  size={note.size + "px" || "200px"}
                 />
-                <SizeButtonGroup>
-                  <SizeListItems>
-                    <SizeButton onClick={() => handleSize("small")}>
-                      Small
-                    </SizeButton>
-                  </SizeListItems>
-                  <SizeListItems>
-                    <SizeButton onClick={() => handleSize("medium")}>
-                      Medium
-                    </SizeButton>
-                  </SizeListItems>
-                  <SizeListItems>
-                    <SizeButton onClick={() => handleSize("large")}>
-                      Large
-                    </SizeButton>
-                  </SizeListItems>
-                </SizeButtonGroup>
-                <Footer>
-                  <ColorButton
-                    color="#333333"
-                    onClick={() => handleColor("#333333", "white")}
-                  />
-                  <ColorButton
-                    color="#EB5757"
-                    onClick={() => handleColor("#EB5757", "black")}
-                  />
-                  <ColorButton
-                    color="#F2994A"
-                    onClick={() => handleColor("#F2994A", "black")}
-                  />
-                  <ColorButton
-                    color="#F2C94C"
-                    onClick={() => handleColor("#F2C94C", "black")}
-                  />
-                  <ColorButton
-                    color="#219653"
-                    onClick={() => handleColor("#219653", "black")}
-                  />
-                  <ColorButton
-                    color="#2F80ED"
-                    onClick={() => handleColor("#2F80ED", "white")}
-                  />
-                  <ColorButton
-                    color="#9B51E0"
-                    onClick={() => handleColor("#9B51E0", "white")}
-                  />
-                </Footer>
+                {/* color buttons */}
+                <ColorButtonGroup>
+                  <ColorListItems color="#333333">
+                    <ColorButton
+                      color="#333333"
+                      onClick={() => handleColor("#333333", "white")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#EB5757">
+                    <ColorButton
+                      color="#EB5757"
+                      onClick={() => handleColor("#EB5757", "black")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#F2994A">
+                    <ColorButton
+                      color="#F2994A"
+                      onClick={() => handleColor("#F2994A", "black")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#F2C94C">
+                    <ColorButton
+                      color="#F2C94C"
+                      onClick={() => handleColor("#F2C94C", "black")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#219653">
+                    <ColorButton
+                      color="#219653"
+                      onClick={() => handleColor("#219653", "black")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#2F80ED">
+                    <ColorButton
+                      color="#2F80ED"
+                      onClick={() => handleColor("#2F80ED", "white")}
+                    />
+                  </ColorListItems>
+                  <ColorListItems color="#9B51E0">
+                    <ColorButton
+                      color="#9B51E0"
+                      onClick={() => handleColor("#9B51E0", "white")}
+                    />
+                  </ColorListItems>
+                </ColorButtonGroup>
               </Container>
             </Draggable>
           </ShadowRoot>
