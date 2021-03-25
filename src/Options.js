@@ -266,17 +266,15 @@ export const Options = () => {
   }, [searchFilter]);
 
   useEffect(() => {
-    chrome.storage.local.set({ name: title.name });
-  }, [title.name]);
-
-  useEffect(() => {
     chrome.storage.sync.get((items) => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
       setFilteredNotes(tempNotes);
     });
-    chrome.storage.local.set({ name: title.name });
+    chrome.storage.local.get(["name"], (name) => {
+      setTitle({ ...title, name: name.name });
+    });
   }, []);
 
   return (
@@ -292,7 +290,15 @@ export const Options = () => {
             />
           )}{" "}
           Notes
-          <EditButton onClick={() => setTitle({ ...title, open: !title.open })}>
+          <EditButton
+            onClick={() => {
+              title.open
+                ? chrome.storage.local.set({ name: title.name }, (name) => {
+                    setTitle({ ...title, open: false });
+                  })
+                : setTitle({ ...title, open: true });
+            }}
+          >
             {title.open ? "DONE" : "EDIT"}
           </EditButton>
         </StyledTitle>
