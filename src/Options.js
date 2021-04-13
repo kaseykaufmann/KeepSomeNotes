@@ -1,232 +1,270 @@
 /* global chrome */
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import {
+  StyledContainer,
+  StyledHeader,
+  EditButton,
+  EditInput,
+  StyledTitle,
+  StyledSubHeader,
+  StyledSearchBar,
+  StyledBody,
+  StyledList,
+  StyledUrlList,
+  Urls,
+  URLTitle,
+  ButtonGroup,
+  DeleteButton,
+  Header,
+  StyledButton,
+  StyledNote,
+  LockOpenIcon,
+  LockIcon,
+  ListUlIcon,
+  ColorButtonGroup,
+  SizeButtonGroup,
+  ColorListItems,
+  SizeButton,
+  RichTextGroup,
+  RichTextButton,
+  ColorButton,
+  StyledImg,
+  Divider,
+} from "./StyledComponents/options";
 
-// import { localMode } from "./constants";
-
-const StyledContainer = styled.div`
-  width: 100%;
-`;
-
-const StyledHeader = styled.span`
-  width: 100%;
-  text-align: center;
-`;
-
-const EditButton = styled.button`
-  background: none;
-  position: absolute;
-  color: gray;
-  top: 10px;
-  right: 10px;
-  border: 0px;
-`;
-
-const EditInput = styled.input`
-  height: 75px;
-  min-width: 150px;
-  width: 30%;
-  background: #8eb5ff;
-  border-radius: 5px;
-  font-size: 72px;
-  top: 10px;
-  left: 10px;
-`;
-
-const StyledTitle = styled.h1`
-  position: relative;
-  min-width: 450px;
-  max-width: 750px;
-  height: 75px;
-  font-size: 72px;
-  text-align: center;
-  background: #8eb5ff;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  z-index: 99;
-  border-radius: 20px;
-  margin: 15px auto;
-  padding: 10px;
-`;
-
-const StyledSubHeader = styled.div`
-  height: 50px;
-  position: relative;
-  padding: 0px 15px;
-`;
-
-const StyledSearchBar = styled.input`
-  width: 100%;
-  height: 50px;
-  font-size: 24px;
-  border-radius: 10px;
-  border: 0px;
-`;
-
-const StyledBody = styled.div`
-  background: #909090;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  padding: 20px;
-`;
-
-const StyledList = styled.div`
-  width: 98%;
-  margin-left: 1%;
-`;
-
-const StyledUrlList = styled.div`
-  width: 100%;
-  margin: 10px 0px;
-`;
-
-const Urls = styled.h4`
-  width: 100%;
-  font-size: 16px;
-  border: 1px solid gray;
-  border-radius: 5px;
-  min-height: 50px;
-  margin: 0px;
-  margin-top: 10px;
-  background: #bdbdbd;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-`;
-
-const URLTitle = styled.div`
-  min-height: 40px;
-  max-width: 70%;
-  padding-top: 15px;
-  padding-left: 15px;
-  width: auto;
-  float: left;
-`;
-
-const ButtonGroup = styled.div`
-  height: 50px;
-  max-width: 50%;
-  width: auto;
-  float: right;
-  margin-right: 10px;
-  padding-top: 5px;
-`;
-
-const DeleteButton = styled.button`
-  color: red;
-  decoration: none;
-  border: 1px solid red;
-  border-radius: 5px;
-  background: #bdbdbd;
-  margin: 3px 10px;
-  padding: 10px;
-`;
-
-const Header = styled.div`
-  height: 20px;
-  border: none;
-  opacity: 0.5;
-`;
-
-const StyledButton = styled.button`
-  height: 20px;
-  border: none;
-  float: right;
-`;
-
-const StyledNote = styled.textarea.attrs((props) => ({
-  color: props.color || "white",
-  backgroundColor: props.backgroundColor || "gray",
-}))`
-  height: 200px;
-  width: 200px;
-  border: none;
-  color: ${(props) => props.color || "white"};
-  background-color: ${(props) => props.backgroundColor || "gray"};
-`;
-
-const UrlEntry = ({ entry }) => {
+const UrlEntry = ({ entry, searchFilter, screenshots }) => {
   const [open, setOpen] = useState(false);
   const url = entry[0];
   const [notes, setNotes] = useState(entry[1]);
-
+  const [ss, setSs] = useState([]);
   // set
   useEffect(() => {
-    notes.length > 0
-      ? chrome.storage.sync.set({ [url]: notes })
-      : chrome.storage.sync.remove(url);
+    if (searchFilter === "") {
+      notes.length > 0
+        ? chrome.storage.sync.set({ [url]: notes })
+        : chrome.storage.sync.remove(url);
+    }
   }, [notes]);
+
+  useEffect(() => {
+    screenshots &&
+      screenshots[0] &&
+      setSs(Object.entries(screenshots[0])[0][1]);
+  }, [screenshots]);
 
   const deleteAllNotes = () => {
     setNotes([]);
+    setSs([]);
   };
 
   return (
     <StyledUrlList>
       <Urls onClick={() => setOpen(!open)}>
-        <URLTitle>
-          {url.substring(0, 50)}
-          {url.length > 50 && "..."}{" "}
-        </URLTitle>
+        <URLTitle>{url}</URLTitle>
         <ButtonGroup>
-          <DeleteButton onClick={deleteAllNotes}>Delete All Notes</DeleteButton>
+          <DeleteButton onClick={deleteAllNotes}>Delete All</DeleteButton>
           <a href={url} target="_blank">
             Go to website
           </a>
         </ButtonGroup>
       </Urls>
-      {notes && (
-        <StyledBody style={{ display: open ? "inherit" : "none" }}>
-          {notes.map((note) => {
-            const handleChange = (e) => {
-              const editedText = e.target.value;
-              setNotes((prevNotes) =>
-                prevNotes.reduce(
-                  (acc, cv) =>
-                    cv.id === note.id
-                      ? acc.push({ ...cv, note: editedText }) && acc
-                      : acc.push(cv) && acc,
-                  []
-                )
-              );
-            };
-            const handleDelete = () => {
-              setNotes(notes.filter((notes) => notes.id !== note.id));
-            };
-            const handleColor = (backgroundColor, color) => {
-              setNotes((prevNotes) =>
-                prevNotes.reduce(
-                  (acc, cv) =>
-                    cv.id === note.id
-                      ? acc.push({
-                          ...cv,
-                          textColor: color,
-                          color: backgroundColor,
-                        }) && acc
-                      : acc.push(cv) && acc,
-                  []
-                )
-              );
-            };
-
-            return (
-              <div
-                style={{
-                  display: "inline-block",
-                  width: 205,
-                  margin: 0,
-                  marginRight: 10,
-                }}
-              >
-                <Header>
-                  <StyledButton onClick={handleDelete}>X</StyledButton>
-                </Header>
-                <StyledNote
-                  onChange={handleChange}
-                  value={note.note ? note.note : ""}
-                  backgroundColor={note.color || "gray"}
-                  color={note.textColor || "black"}
-                ></StyledNote>
-              </div>
-            );
-          })}
+      {(notes || ss) && (
+        <StyledBody
+          style={{ display: open || searchFilter !== "" ? "inherit" : "none" }}
+        >
+          <Divider>
+            {notes &&
+              notes.map((note) => {
+                const handleChange = (e) => {
+                  const editedText = e.target.value;
+                  setNotes((prevNotes) =>
+                    prevNotes.reduce(
+                      (acc, cv) =>
+                        cv.id === note.id
+                          ? acc.push({ ...cv, note: editedText }) && acc
+                          : acc.push(cv) && acc,
+                      []
+                    )
+                  );
+                };
+                const handleDelete = () => {
+                  setNotes(notes.filter((notes) => notes.id !== note.id));
+                };
+                const handleColor = (backgroundColor, color) => {
+                  setNotes((prevNotes) =>
+                    prevNotes.reduce(
+                      (acc, cv) =>
+                        cv.id === note.id
+                          ? acc.push({
+                              ...cv,
+                              textColor: color,
+                              color: backgroundColor,
+                            }) && acc
+                          : acc.push(cv) && acc,
+                      []
+                    )
+                  );
+                };
+                const handleSize = (size) => {
+                  setNotes((prevNotes) =>
+                    prevNotes.reduce(
+                      (acc, cv) =>
+                        cv.id === note.id &&
+                        ((size === "decrement" && note.size > 200) ||
+                          (size === "increment" && note.size < 500))
+                          ? acc.push({
+                              ...cv,
+                              size:
+                                size === "increment"
+                                  ? note.size + 100
+                                  : note.size - 100,
+                            }) && acc
+                          : acc.push(cv) && acc,
+                      []
+                    )
+                  );
+                };
+                const handlePin = () => {
+                  setNotes((prevNotes) =>
+                    prevNotes.reduce(
+                      (acc, cv) =>
+                        cv.id === note.id
+                          ? acc.push({ ...cv, pinned: !note.pinned }) && acc
+                          : acc.push(cv) && acc,
+                      []
+                    )
+                  );
+                };
+                return (
+                  <div
+                    style={{
+                      display: "inline-block",
+                      position: "relative",
+                      width: 205,
+                      margin: 0,
+                      marginRight: 100,
+                    }}
+                  >
+                    <Header>
+                      <RichTextGroup>
+                        <RichTextButton>
+                          <b>B</b>
+                        </RichTextButton>
+                        <RichTextButton>
+                          <i>i</i>
+                        </RichTextButton>
+                        <RichTextButton>
+                          <u>u</u>
+                        </RichTextButton>
+                        <RichTextButton>
+                          <s>s</s>
+                        </RichTextButton>
+                        <RichTextButton>
+                          <ListUlIcon />
+                        </RichTextButton>
+                      </RichTextGroup>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          marginLeft: 4,
+                          width: "fit-content",
+                          display: "inline-block",
+                        }}
+                      >
+                        {note.size}px
+                      </div>
+                      <StyledButton onClick={handleDelete}>X</StyledButton>
+                      <StyledButton onClick={handlePin}>
+                        {note.pinned ? <LockIcon /> : <LockOpenIcon />}
+                      </StyledButton>
+                    </Header>
+                    <SizeButtonGroup>
+                      <div>
+                        <SizeButton onClick={() => handleSize("decrement")}>
+                          -
+                        </SizeButton>
+                      </div>
+                      <div>
+                        <SizeButton onClick={() => handleSize("increment")}>
+                          +
+                        </SizeButton>
+                      </div>
+                    </SizeButtonGroup>
+                    <StyledNote
+                      onChange={handleChange}
+                      value={note.note ? note.note : ""}
+                      backgroundColor={note.color || "gray"}
+                      color={note.textColor || "black"}
+                    ></StyledNote>
+                    {/* color buttons */}
+                    <ColorButtonGroup>
+                      <ColorListItems color="#333333">
+                        <ColorButton
+                          color="#333333"
+                          onClick={() => handleColor("#333333", "white")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#EB5757">
+                        <ColorButton
+                          color="#EB5757"
+                          onClick={() => handleColor("#EB5757", "black")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#F2994A">
+                        <ColorButton
+                          color="#F2994A"
+                          onClick={() => handleColor("#F2994A", "black")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#F2C94C">
+                        <ColorButton
+                          color="#F2C94C"
+                          onClick={() => handleColor("#F2C94C", "black")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#219653">
+                        <ColorButton
+                          color="#219653"
+                          onClick={() => handleColor("#219653", "black")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#2F80ED">
+                        <ColorButton
+                          color="#2F80ED"
+                          onClick={() => handleColor("#2F80ED", "white")}
+                        />
+                      </ColorListItems>
+                      <ColorListItems color="#9B51E0">
+                        <ColorButton
+                          color="#9B51E0"
+                          onClick={() => handleColor("#9B51E0", "white")}
+                        />
+                      </ColorListItems>
+                    </ColorButtonGroup>
+                  </div>
+                );
+              })}
+          </Divider>
+          <Divider>
+            {ss &&
+              ss.map((s, idx) => {
+                return (
+                  <div
+                    key={idx}
+                    style={{ width: "25%", display: "inline-block" }}
+                  >
+                    <Header style={{ width: 205 }}>
+                      <StyledButton
+                        style={{ borderRadius: 100, float: "left" }}
+                      >
+                        X
+                      </StyledButton>
+                    </Header>
+                    <StyledImg src={s.href} />
+                  </div>
+                );
+              })}
+          </Divider>
         </StyledBody>
       )}
     </StyledUrlList>
@@ -235,34 +273,37 @@ const UrlEntry = ({ entry }) => {
 
 export const Options = () => {
   const [notes, setNotes] = useState([]);
+  const [filteredNotes, setFilteredNotes] = useState([]);
+  const [screenshots, setScreenshots] = useState([]);
   const [title, setTitle] = useState({
     open: false,
     name: "Your",
   });
   const [searchFilter, setSearchFilter] = useState("");
-  const [filteredNotes, setFilteredNotes] = useState(notes);
 
   const onSearchFilter = (e) => {
     setSearchFilter(e.target.value);
   };
 
-  // ! when i backspace it deletes notes permanently for some reason
   // TODO highlight the specific words
   useEffect(() => {
-    const newNotes = notes.filter((URL) => {
-      const newNotes = URL[1].filter((note) =>
-        note.note.toLowerCase().includes(searchFilter.toLowerCase())
-      );
-      if (
-        URL[0].toLowerCase().includes(searchFilter.toLowerCase()) ||
-        newNotes.length > 0
-      ) {
-        let newURL = URL;
-        newURL[1] = newNotes;
-        return newURL;
-      }
-    });
-    setFilteredNotes(newNotes);
+    if (searchFilter === "") {
+      setFilteredNotes([]);
+    } else {
+      const newNotes = notes.filter((URL) => {
+        const newNotes = URL[1].filter((note) =>
+          note.note.toLowerCase().includes(searchFilter.toLowerCase())
+        );
+        if (URL[0].toLowerCase().includes(searchFilter.toLowerCase())) {
+          return URL;
+        } else if (newNotes.length > 0) {
+          let newURL = URL;
+          newURL[1] = newNotes;
+          return newURL;
+        }
+      });
+      setFilteredNotes(newNotes);
+    }
   }, [searchFilter]);
 
   useEffect(() => {
@@ -270,10 +311,14 @@ export const Options = () => {
       let tempNotes = [];
       Object.entries(items).map((note) => tempNotes.push(note));
       setNotes(tempNotes);
-      setFilteredNotes(tempNotes);
     });
     chrome.storage.local.get(["name"], (name) => {
       setTitle({ ...title, name: name.name });
+    });
+    chrome.storage.local.get(["screenshots"], (items) => {
+      let tempSS = [];
+      Object.entries(items).map((SS) => tempSS.push(SS));
+      setScreenshots(tempSS);
     });
   }, []);
 
@@ -286,7 +331,7 @@ export const Options = () => {
           ) : (
             <EditInput
               onChange={(e) => setTitle({ ...title, name: e.target.value })}
-              placeholder="Your"
+              placeholder={title.name}
             />
           )}{" "}
           Notes
@@ -304,15 +349,26 @@ export const Options = () => {
         </StyledTitle>
       </StyledHeader>
       <StyledSubHeader>
-        <StyledSearchBar placeholder="Search..." onChange={onSearchFilter} />
+        {/* <StyledSearchBar placeholder="Search..." onChange={onSearchFilter} /> */}
       </StyledSubHeader>
-      {filteredNotes && (
-        <StyledList>
-          {filteredNotes.map((entry) => (
-            <UrlEntry entry={entry} />
-          ))}
-        </StyledList>
-      )}
+      <StyledList>
+        {searchFilter !== ""
+          ? filteredNotes.map((entry) => (
+              <UrlEntry entry={entry} searchFilter={searchFilter} />
+            ))
+          : notes.map((entry) => (
+              <UrlEntry
+                entry={entry}
+                screenshots={
+                  screenshots[0] &&
+                  screenshots[0][1].filter(
+                    (url) => entry[0] === Object.entries(url)[0][0]
+                  )
+                }
+                searchFilter=""
+              />
+            ))}
+      </StyledList>
     </StyledContainer>
   );
 };

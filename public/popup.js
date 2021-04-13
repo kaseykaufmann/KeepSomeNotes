@@ -1,4 +1,5 @@
 let createNote = document.getElementById("createNote");
+let screenshot = document.getElementById("screenshot");
 let deleteAllNotes = document.getElementById("deleteAllNotes");
 let dashboard = document.getElementById("dashboard");
 
@@ -23,6 +24,18 @@ window.addEventListener("DOMContentLoaded", () => {
         console.log(res);
       }
     );
+  };
+
+  screenshot.onclick = () => {
+    chrome.tabs.captureVisibleTab((dataURL) => {
+      chrome.tabs.sendMessage(
+        tab,
+        { from: "popup", subject: "screenshot", href: dataURL },
+        (res) => {
+          console.log(res);
+        }
+      );
+    });
   };
 
   dashboard.onclick = () => {

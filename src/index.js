@@ -13,16 +13,16 @@ document.body.parentNode.insertBefore(insertionPoint, document.body);
 
 !optionsRoot &&
   ReactDOM.render(
-    <React.StrictMode>
+    <>
       <Notes />
-    </React.StrictMode>,
+    </>,
     insertionPoint
   );
 
 optionsRoot &&
   ReactDOM.render(
-    <React.StrictMode>
+    <>
       <Options />
-    </React.StrictMode>,
+    </>,
     optionsRoot
   );

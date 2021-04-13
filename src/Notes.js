@@ -1,14 +1,28 @@
 /* global chrome */
 import React, { useEffect, useState } from "react";
 import Draggable from "react-draggable";
-import { Lock } from "@styled-icons/boxicons-regular/Lock";
-import { LockOpen } from "@styled-icons/boxicons-regular/LockOpen";
-import { ListUl } from "@styled-icons/boxicons-regular/ListUl";
-import styled, { keyframes } from "styled-components";
-import "./App.css";
 import { v4 as uuid } from "uuid";
 import { localMode } from "./constants";
 import { ShadowRoot } from "./ShadowRoot";
+import {
+  Container,
+  Header,
+  RichTextGroup,
+  StyledButton,
+  RichTextButton,
+  StyledTextArea,
+  LockOpenIcon,
+  LockIcon,
+  ListUlIcon,
+  ColorButtonGroup,
+  SizeButtonGroup,
+  ColorListItems,
+  SizeButton,
+  ColorButton,
+} from "./StyledComponents/note";
+
+import "./App.css";
+import { getDefaultNormalizer } from "@testing-library/dom";
 
 /**
  * const sampleNotesShape = [{
@@ -22,122 +36,7 @@ import { ShadowRoot } from "./ShadowRoot";
  *    textColor: "black",
  *    size: 200
  * }];
- */
-const Container = styled.div`
-  z-index: 99;
-  position: absolute;
-  border: none;
-`;
-
-const Header = styled.div`
-  height: 20px;
-  border: none;
-  opacity: 0.5;
-`;
-
-const RichTextGroup = styled.div``;
-
-const StyledButton = styled.button`
-  height: 20px;
-  border: none;
-  float: right;
-`;
-
-const RichTextButton = styled.button`
-  height: 20px;
-  border: none;
-  float: left;
-  &:focus {
-    outline: none;
-  }
-`;
-
-const StyledTextArea = styled.textarea.attrs((props) => ({
-  color: props.color || "white",
-  backgroundColor: props.backgroundColor || "gray",
-  size: props.size,
-}))`
-  color: ${(props) => props.color || "black"};
-  height: ${(props) => props.size || "200px"};
-  width: ${(props) => props.size || "200px"};
-  border: none;
-  color: ${(props) => props.color || "white"};
-  background-color: ${(props) => props.backgroundColor || "gray"};
-`;
-
-const LockOpenIcon = styled(LockOpen)`
-  height: 20px;
-  width: 20px;
-  color: black;
-`;
-
-const LockIcon = styled(Lock)`
-  height: 20px;
-  width: 20px;
-  color: black;
-`;
-
-const ListUlIcon = styled(ListUl)`
-  height: 20px;
-  color: black;
-`;
-
-const ColorButtonGroup = styled.div`
-  position: absolute;
-  right: -60px;
-  top: 20px;
-  width: 60px;
-  height: 90%;
-  margin: 0px;
-  padding: 0px;
-`;
-
-const SizeButtonGroup = styled.div`
-  position: absolute;
-  left: -20px;
-  top: 20px;
-  height: 90%;
-  margin: 0px;
-  padding: 0px;
-`;
-
-const ColorListItems = styled.div.attrs((props) => ({
-  backgroundColor: props.color,
-}))``;
-
-const show = keyframes`
-  from {
-    width: 20px;
-  }
-  to {
-    width: 100%;
-  }
-`;
-const SizeButton = styled.button`
-  width: 20px;
-  padding: 0px;
-  &:focus {
-    outline: none;
-  }
-`;
-
-const ColorButton = styled.button.attrs((props) => ({
-  backgroundColor: props.color,
-}))`
-  width: 14px;
-  height: 18px;
-  padding: 0px;
-  border: 3px solid ${(props) => props.backgroundColor || "gray"};
-  &:hover {
-    animation: ${show} 1s ease-out forwards;
-  }
-  &:focus {
-    outline: none;
-  }
-  background-color: ${(props) => props.backgroundColor || "gray"};
-`;
-
-/**
+ *
  * Gray 1: #333333; textColor: white;
  * Gray 2: #4F4F4F; textColor: white;
  * Gray 3: #828282; textColor: white;
@@ -163,6 +62,7 @@ const ColorButton = styled.button.attrs((props) => ({
 
 const Notes = () => {
   const [notes, setNotes] = useState([]);
+  const [screenshots, setScreenshots] = useState([]);
   const url = window.location.href;
 
   useEffect(() => {
@@ -214,48 +114,85 @@ const Notes = () => {
 
   useEffect(() => {
     // creates note/deletes all notes from popup
-    if (!localMode)
-      chrome.runtime.onMessage.addListener(function (msg, sender, res) {
-        if (msg.from === "popup" && msg.subject === "newNote") {
-          setNotes((prevNotes) => [
-            ...prevNotes,
-            {
-              id: uuid(),
-              x: 100,
-              y: window.scrollY + 100,
-              offsetY: 100,
-              pinned: false,
-              textColor: "white",
-              color: "#333333",
-              size: 200,
-            },
-          ]);
-          res({ msg: "Note successfully created!" });
-        }
+    // if (!localMode)
+    chrome.runtime.onMessage.addListener(function (msg, sender, res) {
+      if (msg.from === "popup" && msg.subject === "newNote") {
+        setNotes((prevNotes) => [
+          ...prevNotes,
+          {
+            id: uuid(),
+            x: 100,
+            y: window.scrollY + 100,
+            offsetY: 100,
+            pinned: false,
+            textColor: "white",
+            color: "#333333",
+            size: 200,
+          },
+        ]);
+        res({ msg: "Note successfully created!" });
+      }
 
-        if (msg.from === "popup" && msg.subject === "deleteAllNotes") {
-          setNotes([]);
-          res({ msg: "All Notes Deleted!" });
-        }
-      });
+      if (msg.from === "popup" && msg.subject === "screenshot") {
+        chrome.storage.local.get("screenshots", (data) => {
+          let screenshots = data["screenshots"];
+
+          if (
+            screenshots &&
+            !screenshots.find((item) => Object.entries(item)[0][0] === url)
+          ) {
+            screenshots.push({
+              [url]: [{ id: uuid(), href: msg.href }],
+            });
+            chrome.storage.local.set({ screenshots: screenshots });
+            return;
+          }
+
+          chrome.storage.local.set({
+            screenshots: [
+              screenshots
+                ? screenshots.find((item) => {
+                    if (Object.entries(item)[0][0] === url) {
+                      let newURL = item[url].push({
+                        id: uuid(),
+                        href: msg.href,
+                      });
+                      return {
+                        [url]: newURL,
+                      };
+                    }
+                  })
+                : { [url]: [{ id: uuid(), href: msg.href }] },
+            ],
+          });
+        });
+
+        res({ msg: "Screenshot successfully created!" });
+      }
+
+      if (msg.from === "popup" && msg.subject === "deleteAllNotes") {
+        setNotes([]);
+        res({ msg: "All Notes Deleted!" });
+      }
+    });
   }, []);
 
   // get notes if they're there
   useEffect(() => {
-    if (!localMode) {
-      chrome.storage.sync.get(url, (items) => {
-        items[url] && setNotes(items[url]);
-      });
-    }
+    // if (!localMode) {
+    chrome.storage.sync.get(url, (items) => {
+      items[url] && setNotes(items[url]);
+    });
+    // }
   }, []);
 
   // set()
   useEffect(() => {
-    if (!localMode) {
-      notes.length > 0
-        ? chrome.storage.sync.set({ [url]: notes })
-        : chrome.storage.sync.remove(url);
-    }
+    // if (!localMode) {
+    notes.length > 0
+      ? chrome.storage.sync.set({ [url]: notes })
+      : chrome.storage.sync.remove(url);
+    // }
   }, [notes]);
 
   return (
@@ -324,7 +261,7 @@ const Notes = () => {
               (acc, cv) =>
                 cv.id === note.id &&
                 ((size === "decrement" && note.size > 200) ||
-                  (size === "increment" && note.size < 700))
+                  (size === "increment" && note.size < 500))
                   ? acc.push({
                       ...cv,
                       size:
@@ -337,7 +274,6 @@ const Notes = () => {
             )
           );
         };
-
         return (
           <ShadowRoot>
             <Draggable
