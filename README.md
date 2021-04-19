@@ -1,12 +1,4 @@
 ## react-chrome-extension
-![Alt text](./react-chrome-extension.png?raw=true "Optional Title")
-
-This is the first in a series of React boilerplate projects to help web developers learn and understand React. This project actually came about as I was creating my latest project, [StyleStash - Save Your favorite CSS Styles](https://stylestash.dev).
-
-## Video Code Walkthrough
-
-If you're more of a visual learner, I've recorded a [20 minute video walkthrough of this project](https://www.youtube.com/watch?v=4x0lQu1TOCQ).
-
 ### Local Testing
 
 `npm start`
