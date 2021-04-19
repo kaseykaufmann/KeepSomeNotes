@@ -30,6 +30,8 @@ import {
   ColorButton,
   StyledImg,
   Divider,
+  SSHeader,
+  ImgGroup,
 } from "./StyledComponents/options";
 
 const UrlEntry = ({ entry, searchFilter, screenshots }) => {
@@ -40,6 +42,7 @@ const UrlEntry = ({ entry, searchFilter, screenshots }) => {
   // set
   useEffect(() => {
     if (searchFilter === "") {
+      console.log("searchfilter", searchFilter, notes);
       notes.length > 0
         ? chrome.storage.sync.set({ [url]: notes })
         : chrome.storage.sync.remove(url);
@@ -52,8 +55,30 @@ const UrlEntry = ({ entry, searchFilter, screenshots }) => {
       setSs(Object.entries(screenshots[0])[0][1]);
   }, [screenshots]);
 
+  // useEffect(() => {
+  //   // console.log({ [url]: ss });
+  //   chrome.storage.local.get(["screenshots"], (items) => {
+  //     // console.log("s0", Object.entries(items)[0][1]);
+
+  //     chrome.storage.sync.set({
+  //       screenshots: Object.entries(items)[0][1].map((s) => {
+  //         if (url === Object.entries(s)[0][0]) {
+  //           console.log("s1", { [url]: ss });
+  //           return { [url]: ss };
+  //         } else {
+  //           console.log("s2", {
+  //             [Object.entries(s)[0][0]]: Object.entries(s)[0][1],
+  //           });
+  //           return { [Object.entries(s)[0][0]]: Object.entries(s)[0][1] };
+  //         }
+  //       }),
+  //     });
+  //   });
+  // }, [ss]);
+
   const deleteAllNotes = () => {
     setNotes([]);
+    // TODO: change this to deleting directly in storage
     setSs([]);
   };
 
@@ -245,26 +270,29 @@ const UrlEntry = ({ entry, searchFilter, screenshots }) => {
                 );
               })}
           </Divider>
-          <Divider>
-            {ss &&
-              ss.map((s, idx) => {
+          {ss && (
+            <Divider style={{ borderTop: "1px solid black", paddingTop: 10 }}>
+              {ss.map((s, idx) => {
+                const handleDelete = () => {
+                  // TODO: change this to deleting directly in storage
+                  setSs(ss.filter((s1) => s1.id !== s.id));
+                };
                 return (
-                  <div
-                    key={idx}
-                    style={{ width: "25%", display: "inline-block" }}
-                  >
-                    <Header style={{ width: 205 }}>
+                  <ImgGroup key={idx}>
+                    <SSHeader>
                       <StyledButton
                         style={{ borderRadius: 100, float: "left" }}
+                        onClick={handleDelete}
                       >
                         X
                       </StyledButton>
-                    </Header>
+                    </SSHeader>
                     <StyledImg src={s.href} />
-                  </div>
+                  </ImgGroup>
                 );
               })}
-          </Divider>
+            </Divider>
+          )}
         </StyledBody>
       )}
     </StyledUrlList>
@@ -290,7 +318,8 @@ export const Options = () => {
     if (searchFilter === "") {
       setFilteredNotes([]);
     } else {
-      const newNotes = notes.filter((URL) => {
+      let newNotes = notes;
+      newNotes.filter((URL) => {
         const newNotes = URL[1].filter((note) =>
           note.note.toLowerCase().includes(searchFilter.toLowerCase())
         );
@@ -317,7 +346,7 @@ export const Options = () => {
     });
     chrome.storage.local.get(["screenshots"], (items) => {
       let tempSS = [];
-      Object.entries(items).map((SS) => tempSS.push(SS));
+      items && Object.entries(items).map((SS) => tempSS.push(SS));
       setScreenshots(tempSS);
     });
   }, []);
@@ -349,7 +378,7 @@ export const Options = () => {
         </StyledTitle>
       </StyledHeader>
       <StyledSubHeader>
-        {/* <StyledSearchBar placeholder="Search..." onChange={onSearchFilter} /> */}
+        <StyledSearchBar placeholder="Search..." onChange={onSearchFilter} />
       </StyledSubHeader>
       <StyledList>
         {searchFilter !== ""

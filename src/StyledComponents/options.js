@@ -247,19 +247,34 @@ const imgChange = keyframes`
   from {
     height: 205px;
     width: 205px;
-    margin-right: 100px;
   }
   to {
     height: 100%;
     width: 100%;
-    margin-right: 0px;
   }
+`;
+
+export const ImgGroup = styled.div`
+  width: calc(33% - 10px);
+  display: inline-block;
+  border: 1px black dashed;
+  border-radius: 10px;
+  margin: 5px;
+`;
+
+export const SSHeader = styled.div`
+  height: 20px;
+  border: none;
+  opacity: 0.5;
+  width: 205px;
 `;
 
 export const StyledImg = styled.img`
   height: 205px;
   width: 205px;
-  margin-right: 100px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   &:focus {
     animation: ${imgChange} 1s ease-out forwards;
   }

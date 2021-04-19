@@ -5,7 +5,14 @@
   "manifest_version": 2,
   "description": "Now you can create some notes for each webpage you visit at the touch of a button! All you have to do is click on the icon, click Add A Note, and write what you want to save!",
   "options_page": "./options.html",
-  "permissions": ["identity", "identity.email", "tabs", "storage", "activeTab"],
+  "permissions": [
+    "identity",
+    "identity.email",
+    "tabs",
+    "storage",
+    "activeTab",
+    "unlimitedStorage"
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -15,5 +22,10 @@
   ],
   "browser_action": {
     "default_popup": "./popup.html"
+  },
+  "icons": {
+    "16": "images/icon256.png",
+    "48": "images/icon256.png",
+    "128": "images/icon256.png"
   }
 }

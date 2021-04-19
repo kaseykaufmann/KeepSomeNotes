@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Draggable from "react-draggable";
 import { v4 as uuid } from "uuid";
-import { localMode } from "./constants";
+// import { localMode } from "./constants";
 import { ShadowRoot } from "./ShadowRoot";
 import {
   Container,
@@ -22,7 +22,6 @@ import {
 } from "./StyledComponents/note";
 
 import "./App.css";
-import { getDefaultNormalizer } from "@testing-library/dom";
 
 /**
  * const sampleNotesShape = [{
@@ -62,7 +61,6 @@ import { getDefaultNormalizer } from "@testing-library/dom";
 
 const Notes = () => {
   const [notes, setNotes] = useState([]);
-  const [screenshots, setScreenshots] = useState([]);
   const url = window.location.href;
 
   useEffect(() => {

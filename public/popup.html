@@ -8,29 +8,66 @@
         height: 30px;
         margin: 4px auto;
       }
-      body {
-        background-color: black;
-      }
-      h2 {
-        color: white;
+      h1 {
         width: max-content;
       }
+      #dashboard {
+        color: gray;
+        border: 1px solid darkgray;
+        background-color: lightgray;
+        box-shadow: 3px 5px 10px gray;
+      }
+      #dashboard:hover {
+        color: black;
+        border: 1px solid darkgray;
+        background-color: rgb(122, 122, 122);
+        box-shadow: 3px 5px 10px gray;
+      }
       #createNote {
-        color: rgb(0, 50, 0);
-        border: 1px solid rgb(0, 50, 0);
+        color: green;
+        border: 1px solid darkgreen;
         background-color: lightgreen;
+        box-shadow: 3px 5px 10px green;
+      }
+      #createNote:hover {
+        color: green;
+        border: 1px solid darkgreen;
+        background-color: rgb(63, 100, 63);
+        box-shadow: 3px 5px 10px green;
+      }
+      #screenshot {
+        color: blue;
+        border: 1px solid darkblue;
+        background-color: lightblue;
+        box-shadow: 3px 5px 10px blue;
+      }
+      #screenshot:hover {
+        color: blue;
+        border: 1px solid darkblue;
+        background-color: rgb(51, 97, 112);
+        box-shadow: 3px 5px 10px blue;
       }
       #deleteAllNotes {
         color: red;
         border: 1px solid red;
         background-color: darkred;
+        box-shadow: 3px 5px 10px red;
+      }
+      #deleteAllNotes:hover {
+        color: red;
+        border: 1px solid red;
+        background-color: rgb(66, 35, 35);
+        box-shadow: 3px 5px 10px red;
       }
       hr {
-        border-top: 1px solid #bbb;
+        border-top: 1px solid #000;
         border-radius: 5px;
       }
     </style>
-    <h2>Keep Some Notes!</h2>
+    <h1>
+      <img src="images/icon256.png" alt="logo" height="24px" />
+      <i><u>Keep Some Notes!</u></i>
+    </h1>
   </head>
   <body>
     <button id="dashboard">Go to Dashboard!</button>
