@@ -57,9 +57,13 @@ export const StyledSearchBar = styled.input`
   width: calc(100% - 10px);
   height: 50px;
   font-size: 24px;
-  border-radius: 10px;
+
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
   border: 0px;
+  padding: 0px;
   padding-left: 15px;
+  display: inline-block;
 `;
 
 export const StyledBody = styled.div`
